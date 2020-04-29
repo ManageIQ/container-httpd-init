@@ -1,2 +1,3 @@
-# container-httpd
-Container for a CentOS 7 httpd server
+# container-httpd-init
+
+Container image for running httpd with external authentication under systemd
