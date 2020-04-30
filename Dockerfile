@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-init
+FROM registry.access.redhat.com/ubi8/ubi-init:8.1-45
 MAINTAINER ManageIQ https://github.com/ManageIQ/container-httpd
 
 ARG DBUS_API_REF=master
