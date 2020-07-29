@@ -1,6 +1,7 @@
-FROM registry.access.redhat.com/ubi8/ubi-init:8.1-45
+FROM registry.access.redhat.com/ubi8/ubi-init:8.2
 MAINTAINER ManageIQ https://github.com/ManageIQ/container-httpd
 
+ARG ARCH=x86_64
 ARG DBUS_API_REF=master
 
 LABEL name="auth-httpd" \
@@ -9,7 +10,9 @@ LABEL name="auth-httpd" \
       summary="httpd image with external authentication" \
       description="An httpd image which includes packages and configuration necessary for handling external authentication."
 
-RUN dnf -y --disableplugin=subscription-manager install http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/centos-repos-8.1-1.1911.0.8.el8.x86_64.rpm http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/centos-gpg-keys-8.1-1.1911.0.8.el8.noarch.rpm && \
+RUN dnf -y --disableplugin=subscription-manager install \
+      http://mirror.centos.org/centos/8.2.2004/BaseOS/${ARCH}/os/Packages/centos-repos-8.2-2.2004.0.1.el8.${ARCH}.rpm \
+      http://mirror.centos.org/centos/8.2.2004/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8.2-2.2004.0.1.el8.noarch.rpm && \
     dnf -y --disableplugin=subscription-manager module enable mod_auth_openidc && \
     dnf -y --disableplugin=subscription-manager install --setopt=tsflags=nodocs \
     httpd \
