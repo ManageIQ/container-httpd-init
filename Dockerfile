@@ -54,6 +54,7 @@ RUN mkdir -p ${HTTPD_DBUS_API_SERVICE_DIRECTORY}
 RUN cd ${HTTPD_DBUS_API_SERVICE_DIRECTORY} && \
     curl -L https://github.com/ManageIQ/dbus_api_service/tarball/${DBUS_API_REF} | tar vxz -C ${HTTPD_DBUS_API_SERVICE_DIRECTORY} --strip 1 && \
     gem install bundler && \
+    bundle config set without test && \
     bundle install
 COPY container-assets/dbus-api.service /usr/lib/systemd/system/dbus-api.service
 
