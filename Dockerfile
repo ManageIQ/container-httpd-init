@@ -44,8 +44,8 @@ RUN dnf -y --disableplugin=subscription-manager install \
 ## Remove any existing configurations
 RUN rm -f /etc/httpd/conf.d/*
 
-RUN dnf -y --disableplugin=subscription-manager module enable ruby:2.5 && \
-    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install ruby-devel
+RUN dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
+    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install ruby
 
 ## Install DBus API Service
 ENV HTTPD_DBUS_API_SERVICE_DIRECTORY=/opt/dbus_api_service
