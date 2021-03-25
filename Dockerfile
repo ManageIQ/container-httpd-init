@@ -1,3 +1,12 @@
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS manifest
+
+COPY .git /tmp/.git
+
+RUN cd /tmp && \
+    sha=$(cat .git/HEAD | cut -d " " -f 2) && \
+    if [[ "$(cat .git/HEAD)" == "ref:"* ]]; then sha=$(cat .git/$sha); fi && \
+    echo "$(date +"%Y%m%d%H%M%S")-$sha" > /tmp/BUILD
+
 FROM registry.access.redhat.com/ubi8/ubi-init:8.3
 MAINTAINER ManageIQ https://github.com/ManageIQ/container-httpd
 
@@ -77,6 +86,9 @@ COPY container-assets/httpd-environment.conf /etc/systemd/system/httpd.service.d
 ## Copy the pages that must be served by this httpd and cannot be proxied.
 RUN mkdir -p /var/www/html/proxy_pages
 COPY container-assets/invalid_sso_credentials.js /var/www/html/proxy_pages/
+
+RUN mkdir -p /opt/manageiq/manifest
+COPY --from=manifest /tmp/BUILD /opt/manageiq/manifest
 
 EXPOSE 8080
 EXPOSE 8081
