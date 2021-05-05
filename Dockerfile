@@ -51,7 +51,9 @@ RUN dnf -y --disableplugin=subscription-manager install \
     dnf --disableplugin=subscription-manager clean all
 
 ## Remove any existing configurations
-RUN rm -f /etc/httpd/conf.d/*
+RUN rm -f /etc/httpd/conf.d/* && \
+    sed -i 's+ErrorLog "logs/error_log"+ErrorLog "/dev/stderr"+g' /etc/httpd/conf/httpd.conf && \
+    sed -i 's+CustomLog "logs/access_log" combined+CustomLog "/dev/stdout" combined+g' /etc/httpd/conf/httpd.conf
 
 RUN dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install ruby
