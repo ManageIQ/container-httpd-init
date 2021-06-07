@@ -19,36 +19,37 @@ LABEL name="auth-httpd" \
       summary="httpd image with external authentication" \
       description="An httpd image which includes packages and configuration necessary for handling external authentication."
 
-RUN dnf -y --disableplugin=subscription-manager install \
+RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       http://mirror.centos.org/centos/8.3.2011/BaseOS/${ARCH}/os/Packages/centos-linux-repos-8-2.el8.noarch.rpm \
       http://mirror.centos.org/centos/8.3.2011/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-2.el8.noarch.rpm && \
     dnf -y --disableplugin=subscription-manager module enable mod_auth_openidc && \
-    dnf -y --disableplugin=subscription-manager install --setopt=tsflags=nodocs \
-    httpd \
-    mod_ssl \
-    # SSSD Packages \
-    sssd \
-    sssd-dbus \
-    # Apache External Authentication Module Packages \
-    mod_auth_gssapi \
-    mod_authnz_pam \
-    mod_intercept_form_submit \
-    mod_lookup_identity \
-    mod_auth_mellon \
-    mod_auth_openidc \
-    # IPA External Authentication Packages \
-    c-ares \
-    certmonger \
-    ipa-client \
-    ipa-admintools \
-    # Active Directory External Authentication Packages \
-    adcli \
-    realmd \
-    oddjob \
-    oddjob-mkhomedir \
-    samba-common \
-    samba-common-tools && \
-    dnf --disableplugin=subscription-manager clean all
+    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
+      httpd \
+      mod_ssl \
+      # SSSD Packages \
+      sssd \
+      sssd-dbus \
+      # Apache External Authentication Module Packages \
+      mod_auth_gssapi \
+      mod_authnz_pam \
+      mod_intercept_form_submit \
+      mod_lookup_identity \
+      mod_auth_mellon \
+      mod_auth_openidc \
+      # IPA External Authentication Packages \
+      c-ares \
+      certmonger \
+      ipa-client \
+      ipa-admintools \
+      # Active Directory External Authentication Packages \
+      adcli \
+      realmd \
+      oddjob \
+      oddjob-mkhomedir \
+      samba-common \
+      samba-common-tools && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
 ## Remove any existing configurations
 RUN rm -f /etc/httpd/conf.d/* && \
@@ -56,7 +57,10 @@ RUN rm -f /etc/httpd/conf.d/* && \
     sed -i 's+CustomLog "logs/access_log" combined+CustomLog "/dev/stdout" combined+g' /etc/httpd/conf/httpd.conf
 
 RUN dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
-    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install ruby
+    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
+      ruby && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
 ## Install DBus API Service
 ENV HTTPD_DBUS_API_SERVICE_DIRECTORY=/opt/dbus_api_service
@@ -64,9 +68,15 @@ ENV HTTPD_DBUS_API_SERVICE_PORT=8081
 RUN mkdir -p ${HTTPD_DBUS_API_SERVICE_DIRECTORY}
 RUN cd ${HTTPD_DBUS_API_SERVICE_DIRECTORY} && \
     curl -L https://github.com/ManageIQ/dbus_api_service/tarball/${DBUS_API_REF} | tar vxz -C ${HTTPD_DBUS_API_SERVICE_DIRECTORY} --strip 1 && \
+    echo "gem: --no-document" > ~/.gemrc && \
     gem install bundler && \
     bundle config set without test && \
-    bundle install
+    bundle install --jobs=3 --retry=3 && \
+    rm -rf /usr/share/gems/cache/* && \
+    find /usr/share/gems/gems/ -name *.o -type f -delete && \
+    find /usr/share/gems/gems/ -maxdepth 2 -name docs -type d -exec rm -r {} + && \
+    find /usr/share/gems/gems/ -maxdepth 2 -name spec -type d -exec rm -r {} + && \
+    find /usr/share/gems/gems/ -maxdepth 2 -name test -type d -exec rm -r {} +
 COPY container-assets/dbus-api.service /usr/lib/systemd/system/dbus-api.service
 
 ## Create the mount point for the authentication configuration files
