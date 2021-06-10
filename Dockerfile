@@ -20,8 +20,8 @@ LABEL name="auth-httpd" \
       description="An httpd image which includes packages and configuration necessary for handling external authentication."
 
 RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
-      http://mirror.centos.org/centos/8.3.2011/BaseOS/${ARCH}/os/Packages/centos-linux-repos-8-2.el8.noarch.rpm \
-      http://mirror.centos.org/centos/8.3.2011/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-2.el8.noarch.rpm && \
+      http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-2.el8.noarch.rpm \
+      http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-2.el8.noarch.rpm && \
     dnf -y --disableplugin=subscription-manager module enable mod_auth_openidc && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       httpd \
