@@ -20,28 +20,29 @@ LABEL name="auth-httpd" \
       description="An httpd image which includes packages and configuration necessary for handling external authentication."
 
 RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
-      http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-2.el8.noarch.rpm \
-      http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-2.el8.noarch.rpm && \
-    dnf config-manager --setopt=appstream*.exclude=*httpd*,mod_ssl --save && \
-    dnf -y --disableplugin=subscription-manager module enable mod_auth_openidc && \
-    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       httpd \
       mod_ssl \
-      # SSSD Packages \
-      sssd \
-      sssd-dbus \
       # Apache External Authentication Module Packages \
       mod_auth_gssapi \
       mod_authnz_pam \
       mod_intercept_form_submit \
       mod_lookup_identity \
-      mod_auth_mellon \
-      mod_auth_openidc \
+      mod_auth_mellon && \
+    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
+      http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-2.el8.noarch.rpm \
+      http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-2.el8.noarch.rpm && \
+    dnf -y --disableplugin=subscription-manager module enable mod_auth_openidc && \
+    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       # IPA External Authentication Packages \
       c-ares \
       certmonger \
       ipa-client \
       ipa-admintools \
+      # SSSD Packages \
+      sssd \
+      sssd-dbus \
+      # Apache External Authentication Module Packages \
+      mod_auth_openidc \
       # Active Directory External Authentication Packages \
       adcli \
       realmd \
