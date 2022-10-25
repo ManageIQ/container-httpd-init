@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest AS manifest
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest AS manifest
 
 COPY .git /tmp/.git
 
@@ -7,10 +7,9 @@ RUN cd /tmp && \
     if [[ "$(cat .git/HEAD)" == "ref:"* ]]; then sha=$(cat .git/$sha); fi && \
     echo "$(date +"%Y%m%d%H%M%S")-$sha" > /tmp/BUILD
 
-FROM registry.access.redhat.com/ubi8/ubi-init
+FROM registry.access.redhat.com/ubi9/ubi-init
 MAINTAINER ManageIQ https://github.com/ManageIQ/container-httpd
 
-ARG ARCH=x86_64
 ARG DBUS_API_REF=master
 
 LABEL name="auth-httpd" \
@@ -19,7 +18,8 @@ LABEL name="auth-httpd" \
       summary="httpd image with external authentication" \
       description="An httpd image which includes packages and configuration necessary for handling external authentication."
 
-RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
+RUN ARCH=$(uname -m) && \
+    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       httpd \
       mod_ssl \
       # Apache External Authentication Module Packages \
@@ -28,10 +28,12 @@ RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install 
       mod_intercept_form_submit \
       mod_lookup_identity \
       mod_auth_mellon && \
-    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
-      http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-8-2.el8.noarch.rpm \
-      http://mirror.centos.org/centos/8-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-8-2.el8.noarch.rpm && \
-    dnf -y --disableplugin=subscription-manager module enable mod_auth_openidc && \
+    dnf -y --setopt=protected_packages= remove redhat-release && \
+    dnf -y remove *subscription-manager* && \
+    dnf -y --setopt=tsflags=nodocs install \
+      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-9.0-12.el9.noarch.rpm \
+      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-9.0-12.el9.noarch.rpm \
+      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-9.0-12.el9.noarch.rpm && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       # IPA External Authentication Packages \
       c-ares \
@@ -58,8 +60,7 @@ RUN rm -f /etc/httpd/conf.d/* && \
     sed -i 's+ErrorLog "logs/error_log"+ErrorLog "/dev/stderr"+g' /etc/httpd/conf/httpd.conf && \
     sed -i 's+CustomLog "logs/access_log" combined+CustomLog "/dev/stdout" combined+g' /etc/httpd/conf/httpd.conf
 
-RUN dnf -y --disableplugin=subscription-manager module enable ruby:2.6 && \
-    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
+RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       ruby && \
     dnf clean all && \
     rm -rf /var/cache/dnf
