@@ -31,9 +31,9 @@ RUN ARCH=$(uname -m) && \
     dnf -y --setopt=protected_packages= remove redhat-release && \
     dnf -y remove *subscription-manager* && \
     dnf -y --setopt=tsflags=nodocs install \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-9.0-12.el9.noarch.rpm \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-9.0-12.el9.noarch.rpm \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-9.0-12.el9.noarch.rpm && \
+      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-9.0-23.el9.noarch.rpm \
+      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-9.0-23.el9.noarch.rpm \
+      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-9.0-23.el9.noarch.rpm && \
     dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
       # IPA External Authentication Packages \
       c-ares \
