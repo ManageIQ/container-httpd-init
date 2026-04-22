@@ -24,28 +24,27 @@ RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=
     dnf -y --setopt=tsflags=nodocs install \
       httpd \
       mod_ssl \
+      ruby \
       # Apache External Authentication Module Packages \
       mod_auth_gssapi \
+      mod_auth_mellon \
+      mod_auth_openidc \
       mod_authnz_pam \
       mod_intercept_form_submit \
       mod_lookup_identity \
-      # Apache External Authentication Module Packages \
-      mod_auth_mellon \
       # IPA External Authentication Packages \
       c-ares \
       certmonger \
-      ipa-client \
       ipa-admintools \
+      ipa-client \
       # SSSD Packages \
       sssd \
       sssd-dbus \
-      # Apache External Authentication Module Packages \
-      mod_auth_openidc \
       # Active Directory External Authentication Packages \
       adcli \
-      realmd \
       oddjob \
       oddjob-mkhomedir \
+      realmd \
       samba-common \
       samba-common-tools && \
     miq_clean_dnf_rpm
@@ -54,11 +53,6 @@ RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=
 RUN rm -f /etc/httpd/conf.d/* && \
     sed -i 's+ErrorLog "logs/error_log"+ErrorLog "/dev/stderr"+g' /etc/httpd/conf/httpd.conf && \
     sed -i 's+CustomLog "logs/access_log" combined+CustomLog "/dev/stdout" combined+g' /etc/httpd/conf/httpd.conf
-
-RUN dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
-      ruby && \
-    dnf clean all && \
-    rm -rf /var/cache/dnf
 
 ## Install DBus API Service
 ENV HTTPD_DBUS_API_SERVICE_DIRECTORY=/opt/dbus_api_service
