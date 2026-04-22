@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest AS manifest
+FROM registry.access.redhat.com/ubi10/ubi-minimal:latest AS manifest
 
 COPY .git /tmp/.git
 
@@ -7,7 +7,7 @@ RUN cd /tmp && \
     if [[ "$(cat .git/HEAD)" == "ref:"* ]]; then sha=$(cat .git/$sha); fi && \
     echo "$(date +"%Y%m%d%H%M%S")-$sha" > /tmp/BUILD
 
-FROM registry.access.redhat.com/ubi9/ubi-init
+FROM registry.access.redhat.com/ubi10/ubi-init
 MAINTAINER ManageIQ https://github.com/ManageIQ/container-httpd
 
 ARG DBUS_API_REF=master
@@ -19,7 +19,14 @@ LABEL name="auth-httpd" \
       description="An httpd image which includes packages and configuration necessary for handling external authentication."
 
 RUN ARCH=$(uname -m) && \
-    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
+    sed -i "s/enabled=1/enabled=0/g" /etc/dnf/plugins/subscription-manager.conf && \
+    dnf -y install \
+      http://mirror.stream.centos.org/10-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-10.0-21.el10.noarch.rpm \
+      http://mirror.stream.centos.org/10-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-10.0-21.el10.noarch.rpm && \
+    dnf -y --setopt=protected_packages= swap redhat-release centos-stream-release && \
+    dnf -y install epel-release && \
+    /usr/bin/crb enable && \
+    dnf -y --setopt=tsflags=nodocs install \
       httpd \
       mod_ssl \
       # Apache External Authentication Module Packages \
@@ -27,14 +34,8 @@ RUN ARCH=$(uname -m) && \
       mod_authnz_pam \
       mod_intercept_form_submit \
       mod_lookup_identity \
-      mod_auth_mellon && \
-    dnf -y --setopt=protected_packages= remove redhat-release && \
-    dnf -y remove *subscription-manager* && \
-    dnf -y --setopt=tsflags=nodocs install \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-release-9.0-34.el9.noarch.rpm \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-9.0-34.el9.noarch.rpm \
-      http://mirror.stream.centos.org/9-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-9.0-34.el9.noarch.rpm && \
-    dnf -y --disableplugin=subscription-manager --setopt=tsflags=nodocs install \
+      # Apache External Authentication Module Packages \
+      mod_auth_mellon \
       # IPA External Authentication Packages \
       c-ares \
       certmonger \
