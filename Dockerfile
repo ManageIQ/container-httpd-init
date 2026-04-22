@@ -18,14 +18,9 @@ LABEL name="auth-httpd" \
       summary="httpd image with external authentication" \
       description="An httpd image which includes packages and configuration necessary for handling external authentication."
 
-RUN ARCH=$(uname -m) && \
-    sed -i "s/enabled=1/enabled=0/g" /etc/dnf/plugins/subscription-manager.conf && \
-    dnf -y install \
-      http://mirror.stream.centos.org/10-stream/BaseOS/${ARCH}/os/Packages/centos-stream-repos-10.0-21.el10.noarch.rpm \
-      http://mirror.stream.centos.org/10-stream/BaseOS/${ARCH}/os/Packages/centos-gpg-keys-10.0-21.el10.noarch.rpm && \
-    dnf -y --setopt=protected_packages= swap redhat-release centos-stream-release && \
-    dnf -y install epel-release && \
-    /usr/bin/crb enable && \
+RUN --mount=type=bind,from=quay.io/manageiq/build_tools:v1,source=/tools,target=/usr/local/bin \
+    miq_switch_to_centos_stream_10 && \
+    miq_enable_epel && \
     dnf -y --setopt=tsflags=nodocs install \
       httpd \
       mod_ssl \
@@ -53,8 +48,7 @@ RUN ARCH=$(uname -m) && \
       oddjob-mkhomedir \
       samba-common \
       samba-common-tools && \
-    dnf clean all && \
-    rm -rf /var/cache/dnf
+    miq_clean_dnf_rpm
 
 ## Remove any existing configurations
 RUN rm -f /etc/httpd/conf.d/* && \
