@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi10/ubi-minimal:10.2 AS manifest
+FROM registry.access.redhat.com/ubi10/ubi-minimal:10.2-1780550715 AS manifest
 
 COPY .git /tmp/.git
 
